@@ -74,9 +74,3 @@ Erro: "No such file or directory"
 
 
 ---
-
-### Próximo passo sugerido
-Agora que você tem o `README.md` e o `requirements.txt`, seu projeto está **muito mais profissional**. Se você subir isso para o GitHub, os juízes do Hackathon vão conseguir rodar seu código sem dor de cabeça.
-
-Quer ajuda para ajustar o código do `main.py` para ele ler automaticamente da pasta `dad
-```
