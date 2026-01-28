@@ -15,13 +15,25 @@ except:
 
 # --- FUNÇÕES DE DETECÇÃO ---
 
+def normalizar_texto(texto):
+    if not isinstance(texto, str):
+        return ""
+
+    texto = texto.replace("\n", " ")
+    texto = texto.replace("\r", " ")
+    texto = texto.replace("\t", " ")
+
+    texto = " ".join(texto.split())
+
+    return texto
+
+
 def tem_padrao_fixo(texto):
     if not isinstance(texto, str):
-        return False, ""
+        return False, None
         
     regex_cpf = r'(?:\d{3}\.?\d{3}\.?\d{3}-?\d{2})'
     regex_email = r'[\w\.-]+@[\w\.-]+\.\w+'
-    
     regex_tel = r'\(?\d{2}\)?\s?\d{4,5}-?\d{4}'
 
     if re.search(regex_cpf, texto):
@@ -31,7 +43,7 @@ def tem_padrao_fixo(texto):
     if re.search(regex_tel, texto):
         return True, "Telefone Detectado"
         
-    return False, ""
+    return False, None
 
 def tem_nome_pessoa(texto):
     if not isinstance(texto, str):
@@ -75,7 +87,9 @@ def processar_arquivo():
 
         try:
             id_pedido = linha['ID']
-            texto = linha['Texto Mascarado']
+            texto_original = linha['Texto Mascarado']
+            texto = normalizar_texto(texto_original)
+
         except KeyError as e:
             print(f"❌ Erro: Coluna não encontrada: {e}")
             print(f"Colunas disponíveis: {list(df.columns)}")
@@ -97,7 +111,6 @@ def processar_arquivo():
             'ID': id_pedido,
             'Classificacao': classificacao,
             'Justificativa': justificativa,
-            'Texto Analisado': texto
         })
 
     os.makedirs(os.path.dirname(caminho_saida), exist_ok=True)
