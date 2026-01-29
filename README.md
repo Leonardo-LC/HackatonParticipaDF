@@ -1,87 +1,145 @@
-# Classificador de Dados Pessoais - Hackathon Participa DF
+# Classificador de Dados Pessoais
 
-## 1. Objetivo da Solução
+Sistema automático para identificação e classificação de dados pessoais em pedidos de acesso à informação.
 
-Este projeto foi desenvolvido para o desafio de **Acesso à Informação** do Hackathon Participa DF. Sua principal função é analisar um conjunto de pedidos de acesso à informação e **identificar automaticamente aqueles que contêm dados pessoais**, classificando-os como "RESTRITO".
+## Objetivo
 
-A solução utiliza uma abordagem híbrida:
+Analisar documentos em formato texto e classificar automaticamente aqueles que contêm dados pessoais (CPF, email, telefone, nomes de pessoas) como RESTRITO, protegendo a privacidade conforme legislação de acesso à informação.
 
-1.  **Expressões Regulares (Regex):** Para detectar padrões de dados estruturados como CPF, e-mail e telefone.
-2.  **Inteligência Artificial (NLP):** Com o uso da biblioteca `spacy` e do modelo `pt_core_news_lg`, para identificar entidades nominais como nomes de pessoas, que não seguem um padrão fixo.
+## Arquitetura
 
-O objetivo é maximizar a precisão e a sensibilidade (recall) do modelo, garantindo que o menor número possível de dados pessoais passe sem ser detectado (falsos negativos).
+```
+Arquivo Excel
+      ↓
+  main.py
+      ↓
+src/analise.py
+  - Padrões fixos (CPF, Email, Telefone)
+  - NER com filtros inteligentes
+      ↓
+Arquivo CSV
+```
 
----
-
-## 2. Estrutura de Arquivos do Projeto
-
-A estrutura de pastas foi organizada para separar claramente os dados dos scripts, conforme a lógica do projeto:
-
-| Pasta / Arquivo           | Descrição                                                                                              |
-| :------------------------ | :----------------------------------------------------------------------------------------------------- |
-| **`📂 dados/entrada/`**   | Local onde o arquivo de amostra (`AMOSTRA_e-SIC.xlsx`) deve ser colocado.                              |
-| **`📂 dados/saida/`**     | Local onde o script salva o resultado da análise (`resultado_analise.csv`).                            |
-| **`📂 src/`**             | Contém os módulos Python com a lógica de análise.                                                      |
-| **`📄 src/analise.py`**   | Contém as funções de detecção de dados pessoais (Regex e IA).                                          |
-| **`📄 main.py`**          | O "cérebro" do projeto. Orquestra a leitura, o processamento e a gravação dos resultados.              |
-| **`📄 requirements.txt`** | Arquivo de configuração que lista todas as bibliotecas Python necessárias para que o projeto funcione. |
-
----
-
-## 3. Pré-requisitos
-
-Antes de iniciar, garanta que você tenha os seguintes softwares instalados em sua máquina:
-
-- **Python 3.9 ou superior.**
-
----
-
-## 4. Instruções de Instalação e Configuração
-
-Siga **exatamente** esta sequência de comandos no seu terminal para preparar o ambiente de execução.
-
-**a) Crie o Ambiente Virtual**
-Este comando cria uma pasta `.venv` que conterá todas as dependências do projeto.
+## Instalação
 
 ```bash
+# 1. Criar ambiente virtual
 python3 -m venv .venv
-```
 
-**b) Ative o Ambiente Virtual**
-Este comando "liga" o ambiente. Você deve executá-lo sempre que abrir um novo terminal para trabalhar no projeto.
+# 2. Ativar ambiente
+source .venv/bin/activate  # Linux/macOS
+.venv\Scripts\activate      # Windows
 
-```bash
-# No Linux ou macOS
-source .venv/bin/activate
-```
-
-**c) Instale as Dependências**
-Este comando lê o arquivo `requirements.txt` e instala automaticamente todas as bibliotecas necessárias.
-
-```bash
+# 3. Instalar dependências
 pip install -r requirements.txt
-```
 
-**d) Baixe o Modelo de IA**
-Este comando faz o download do modelo de linguagem em português que o `spacy` utilizará.
-
-```bash
+# 4. Baixar modelo de IA
 python -m spacy download pt_core_news_lg
 ```
 
----
+## Uso
 
-## 5. Instruções de Execução
-
-**a) Comando de Execução**
-Com o ambiente virtual ativo e o arquivo `AMOSTRA_e-SIC.xlsx` dentro da pasta `dados/entrada/`, execute o seguinte comando no terminal:
+### Validação do Sistema
 
 ```bash
-python main.py
+python test.py
 ```
 
-**b) Formato dos Dados de Entrada e Saída**
+Executa testes de validação com casos de entrada comuns.
 
-- **Entrada:** O script espera encontrar um arquivo Excel (`.xlsx`) no caminho `dados/entrada/AMOSTRA_e-SIC.xlsx`. Este arquivo deve conter as colunas `ID` e `Texto Mascarado`.
+### Processamento de Arquivo
 
-- **Saída:** Após a execução, o script criará um arquivo CSV em `dados/saida/resultado_analise.csv` com as colunas `ID`, `Classificacao` e `Justificativa`.
+```bash
+# Com caminhos padrão (dados/entrada/ → dados/saida/)
+python main.py
+
+# Com caminho de entrada customizado
+python main.py caminho/entrada.xlsx
+
+# Com caminhos de entrada e saída customizados
+python main.py caminho/entrada.xlsx caminho/saida.csv
+```
+
+O script:
+
+- Lê arquivo Excel
+- Classifica cada documento
+- Salva resultado em CSV
+
+## Formato de Entrada
+
+Arquivo Excel com colunas obrigatórias:
+
+- **ID**: Identificador único do documento
+- **Texto Mascarado**: Conteúdo a ser analisado
+
+## Formato de Saída
+
+CSV com separador `;`:
+
+```
+ID;Classificacao;Justificativa
+1;PUBLICO;Nenhum dado sensível encontrado
+7;RESTRITO;CPF Detectado
+8;RESTRITO;Possível Nome Pessoal (IA)
+```
+
+### Classificações
+
+- **PUBLICO**: Nenhum dado sensível detectado
+- **RESTRITO**: Contém dados pessoais
+
+### Justificativas
+
+- CPF Detectado
+- Email Detectado
+- Telefone Detectado
+- Possível Nome Pessoal (IA)
+- Nenhum dado sensível encontrado
+
+## Detecção
+
+### Padrões Estruturados (Regex)
+
+- **CPF**: 123.456.789-10 ou 12345678910
+- **Email**: usuario@dominio.com
+- **Telefone**: (11) 98765-4321 ou 11 98765-4321
+
+### Detecção por IA (Spacy)
+
+Utiliza modelo `pt_core_news_lg`:
+
+1. **Named Entity Recognition (NER)** - Identifica entidades nomeadas
+2. **Filtros Inteligentes** - Remove órgãos, endereços e falsas positivos
+3. **Fallback Contextual** - Detecta expressões explícitas
+
+## Troubleshooting
+
+| Erro                         | Solução                                                 |
+| ---------------------------- | ------------------------------------------------------- |
+| `ModuleNotFoundError: spacy` | `pip install -r requirements.txt`                       |
+| `Modelo não encontrado`      | `python -m spacy download pt_core_news_lg`              |
+| `Arquivo não encontrado`     | Verifique caminho e nome do arquivo de entrada          |
+| `Coluna não encontrada`      | Verifique se Excel tem colunas `ID` e `Texto Mascarado` |
+
+## Dependências
+
+- **pandas** - Processamento de dados
+- **spacy** - Processamento de linguagem natural
+- **openpyxl** - Leitura de arquivos Excel
+
+## Estrutura de Arquivos
+
+```
+.
+├── main.py                  # Script principal
+├── teste_completo.py        # Validação do sistema
+├── requirements.txt         # Dependências
+├── ARQUITETURA.md          # Documentação técnica
+├── src/
+│   └── analise.py          # Motor de detecção
+├── dados/
+│   ├── entrada/            # Arquivos de entrada
+│   └── saida/              # Resultados (gerado)
+└── detector_nomes/         # Referência
+```
