@@ -1,76 +1,145 @@
-# 📊 Análise de Dados Inteligente - Hackathon
+# Classificador de Dados Pessoais
 
-Este projeto realiza o processamento de linguagem natural (NLP) em dados públicos (e-SIC/Participa DF) utilizando Python, Pandas e Spacy. O objetivo é classificar e analisar demandas automaticamente.
+Sistema automático para identificação e classificação de dados pessoais em pedidos de acesso à informação.
 
----
+## Objetivo
 
-## 📂 Estrutura de Pastas
+Analisar documentos em formato texto e classificar automaticamente aqueles que contêm dados pessoais (CPF, email, telefone, nomes de pessoas) como RESTRITO, protegendo a privacidade conforme legislação de acesso à informação.
 
-Aqui está a organização do projeto e para que serve cada coisa:
+## Arquitetura
 
-| Pasta / Arquivo           | Descrição                                                                                                                                                                               |
-| :------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`📂 dados/`**           | **Entrada e Saída.** Coloque seus arquivos CSV/Excel originais aqui. O script também salvará os resultados processados nesta pasta.                                                     |
-| **`📂 .venv/`**           | **Ambiente Virtual.** É uma pasta gerada automaticamente que contém todas as bibliotecas instaladas (Pandas, Spacy) isoladas do seu sistema operacional. **Não mexa aqui manualmente.** |
-| **`📄 main.py`**          | **O Código Principal.** É o "cérebro" da automação. Ele lê o arquivo da pasta `dados/`, processa com IA e gera o relatório.                                                             |
-| **`📄 requirements.txt`** | **Lista de Dependências.** Um arquivo de texto que diz ao instalador (`pip`) quais bibliotecas e versões o projeto precisa para funcionar.                                              |
+```
+Arquivo Excel
+      ↓
+  main.py
+      ↓
+src/analise.py
+  - Padrões fixos (CPF, Email, Telefone)
+  - NER com filtros inteligentes
+      ↓
+Arquivo CSV
+```
 
----
-
-## 🚀 Como Rodar o Projeto
-
-Siga estes passos se estiver baixando o projeto pela primeira vez ou reiniciou o computador.
-
-### 1. Preparar o Ambiente (Apenas na 1ª vez)
-
-Crie o ambiente virtual para isolar as dependências:
+## Instalação
 
 ```bash
+# 1. Criar ambiente virtual
 python3 -m venv .venv
 
-2. Ativar o Ambiente (Sempre que abrir o terminal)
+# 2. Ativar ambiente
+source .venv/bin/activate  # Linux/macOS
+.venv\Scripts\activate      # Windows
 
-Antes de rodar qualquer comando, certifique-se de que o ambiente está ativo (o texto (.venv) aparecerá no terminal).
-
-No Linux/Mac:
-Bash
-
-source .venv/bin/activate
-
-3. Instalar Dependências
-
-Instale o Pandas, Spacy e baixe o modelo de inteligência artificial em português (obrigatório):
-Bash
-
+# 3. Instalar dependências
 pip install -r requirements.txt
+
+# 4. Baixar modelo de IA
 python -m spacy download pt_core_news_lg
+```
 
-4. Executar
+## Uso
 
-Certifique-se de que o arquivo de dados (ex: AMOSTRA_e-SIC.csv) está dentro da pasta dados/ e rode:
-Bash
+### Validação do Sistema
 
+```bash
+python test.py
+```
+
+Executa testes de validação com casos de entrada comuns.
+
+### Processamento de Arquivo
+
+```bash
+# Com caminhos padrão (dados/entrada/ → dados/saida/)
 python main.py
 
-🛠 Solução de Problemas Comuns
+# Com caminho de entrada customizado
+python main.py caminho/entrada.xlsx
 
-Erro: "ModuleNotFoundError: No module named 'pandas'"
+# Com caminhos de entrada e saída customizados
+python main.py caminho/entrada.xlsx caminho/saida.csv
+```
 
-    Causa: Você esqueceu de ativar o ambiente virtual.
+O script:
 
-    Solução: Rode source .venv/bin/activate.
+- Lê arquivo Excel
+- Classifica cada documento
+- Salva resultado em CSV
 
-Erro: "Can't find model 'pt_core_news_lg'"
+## Formato de Entrada
 
-    Causa: As bibliotecas estão instaladas, mas o "cérebro" da IA não foi baixado.
+Arquivo Excel com colunas obrigatórias:
 
-    Solução: Rode python -m spacy download pt_core_news_lg.
+- **ID**: Identificador único do documento
+- **Texto Mascarado**: Conteúdo a ser analisado
 
-Erro: "No such file or directory"
+## Formato de Saída
 
-    Causa: O código não achou o arquivo CSV.
+CSV com separador `;`:
 
-    Solução: Verifique se o nome do arquivo no código bate exatamente com o nome do arquivo na pasta dados/.
+```
+ID;Classificacao;Justificativa
+1;PUBLICO;Nenhum dado sensível encontrado
+7;RESTRITO;CPF Detectado
+8;RESTRITO;Possível Nome Pessoal (IA)
+```
 
+### Classificações
 
----
+- **PUBLICO**: Nenhum dado sensível detectado
+- **RESTRITO**: Contém dados pessoais
+
+### Justificativas
+
+- CPF Detectado
+- Email Detectado
+- Telefone Detectado
+- Possível Nome Pessoal (IA)
+- Nenhum dado sensível encontrado
+
+## Detecção
+
+### Padrões Estruturados (Regex)
+
+- **CPF**: 123.456.789-10 ou 12345678910
+- **Email**: usuario@dominio.com
+- **Telefone**: (11) 98765-4321 ou 11 98765-4321
+
+### Detecção por IA (Spacy)
+
+Utiliza modelo `pt_core_news_lg`:
+
+1. **Named Entity Recognition (NER)** - Identifica entidades nomeadas
+2. **Filtros Inteligentes** - Remove órgãos, endereços e falsas positivos
+3. **Fallback Contextual** - Detecta expressões explícitas
+
+## Troubleshooting
+
+| Erro                         | Solução                                                 |
+| ---------------------------- | ------------------------------------------------------- |
+| `ModuleNotFoundError: spacy` | `pip install -r requirements.txt`                       |
+| `Modelo não encontrado`      | `python -m spacy download pt_core_news_lg`              |
+| `Arquivo não encontrado`     | Verifique caminho e nome do arquivo de entrada          |
+| `Coluna não encontrada`      | Verifique se Excel tem colunas `ID` e `Texto Mascarado` |
+
+## Dependências
+
+- **pandas** - Processamento de dados
+- **spacy** - Processamento de linguagem natural
+- **openpyxl** - Leitura de arquivos Excel
+
+## Estrutura de Arquivos
+
+```
+.
+├── main.py                  # Script principal
+├── teste_completo.py        # Validação do sistema
+├── requirements.txt         # Dependências
+├── ARQUITETURA.md          # Documentação técnica
+├── src/
+│   └── analise.py          # Motor de detecção
+├── dados/
+│   ├── entrada/            # Arquivos de entrada
+│   └── saida/              # Resultados (gerado)
+└── detector_nomes/         # Referência
+```
